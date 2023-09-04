@@ -1,3 +1,4 @@
+// utils/db.js
 const { MongoClient } = require('mongodb');
 
 class DBClient {
@@ -8,13 +9,18 @@ class DBClient {
 
     const url = `mongodb://${host}:${port}/${database}`;
 
+    // Initialize the MongoDB client and connect to the database
     this.client = new MongoClient(url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
 
     this.client.connect()
-      .then(() => console.log('Connected to MongoDB'))
+      .then(() => {
+        console.log('Connected to MongoDB');
+        // Access the database itself (assuming the database name is 'files_manager')
+        this.db = this.client.db(database);
+      })
       .catch((error) => console.error(`MongoDB Connection Error: ${error}`));
   }
 
@@ -23,12 +29,12 @@ class DBClient {
   }
 
   async nbUsers() {
-    const usersCollection = this.client.db().collection('users');
+    const usersCollection = this.db.collection('users');
     return usersCollection.countDocuments();
   }
 
   async nbFiles() {
-    const filesCollection = this.client.db().collection('files');
+    const filesCollection = this.db.collection('files');
     return filesCollection.countDocuments();
   }
 }

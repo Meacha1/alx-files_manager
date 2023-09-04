@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const UsersController = require('../controllers/UsersController');
-const AppController = require('../controllers/AppController')
+const AppController = require('../controllers/AppController');
+const UsersController = require('../controllers/UsersController'); // Import UsersController
 
-// Define your existing endpoints
+// Define your endpoints
 router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
-
-// Add the new /users POST endpoint
-router.post('/users', UsersController.postNew);
+router.post('/users', UsersController.postNew); // Add the new /users POST endpoint
 
 module.exports = router;
