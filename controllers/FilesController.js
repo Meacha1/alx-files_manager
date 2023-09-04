@@ -216,6 +216,42 @@ class UpdatedFilesController {
 
     return response.status(200).json(fileDocument);
   }
+  
+  /**
+   * Returns the content of the file document based on the ID.
+   * @param {object} request - The HTTP request object.
+   * @param {object} response - The HTTP response object.
+   */
+  static async getFile(request, response) {
+    const userId = await findUserIdByToken(request);
+    if (!userId) return response.status(401).json({ error: 'Unauthorized' });
+
+    const fileId = request.params.id || '';
+    const fileDocument = await dbClient.db
+      .collection('files')
+      .findOne({ _id: ObjectID(fileId) });
+
+    if (!fileDocument) return response.status(404).json({ error: 'Not found' });
+
+    if (!fileDocument.isPublic && (fileDocument.userId !== userId)) {
+      return response.status(404).json({ error: 'Not found' });
+    }
+
+    if (fileDocument.type === 'folder') {
+      return response.status(400).json({ error: "A folder doesn't have content" });
+    }
+
+    const localPath = fileDocument.localPath;
+
+    if (!fs.existsSync(localPath)) {
+      return response.status(404).json({ error: 'Not found' });
+    }
+
+    const mimeType = mime.lookup(fileDocument.name) || 'application/octet-stream';
+
+    response.setHeader('Content-Type', mimeType);
+    response.sendFile(localPath);
+  }
 
 }
 
