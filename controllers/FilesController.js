@@ -166,6 +166,57 @@ class UpdatedFilesController {
 
     return response.send(filesArray);
   }
+  
+  /**
+   * Sets isPublic to true on the file document based on the ID.
+   * @param {object} request - The HTTP request object.
+   * @param {object} response - The HTTP response object.
+   */
+  static async putPublish(request, response) {
+    // Retrieve the user based on the token
+    const userId = await findUserIdByToken(request);
+    if (!userId) return response.status(401).json({ error: 'Unauthorized' });
+
+    const fileId = request.params.id || '';
+    const fileDocument = await dbClient.db
+      .collection('files')
+      .findOne({ _id: ObjectID(fileId), userId: ObjectID(userId) });
+
+    if (!fileDocument) return response.status(404).json({ error: 'Not found' });
+
+    // Update the value of isPublic to true
+    await dbClient.db
+      .collection('files')
+      .updateOne({ _id: ObjectID(fileId) }, { $set: { isPublic: true } });
+
+    return response.status(200).json(fileDocument);
+  }
+
+  /**
+   * Sets isPublic to false on the file document based on the ID.
+   * @param {object} request - The HTTP request object.
+   * @param {object} response - The HTTP response object.
+   */
+  static async putUnpublish(request, response) {
+    // Retrieve the user based on the token
+    const userId = await findUserIdByToken(request);
+    if (!userId) return response.status(401).json({ error: 'Unauthorized' });
+
+    const fileId = request.params.id || '';
+    const fileDocument = await dbClient.db
+      .collection('files')
+      .findOne({ _id: ObjectID(fileId), userId: ObjectID(userId) });
+
+    if (!fileDocument) return response.status(404).json({ error: 'Not found' });
+
+    // Update the value of isPublic to false
+    await dbClient.db
+      .collection('files')
+      .updateOne({ _id: ObjectID(fileId) }, { $set: { isPublic: false } });
+
+    return response.status(200).json(fileDocument);
+  }
+
 }
 
 module.exports = UpdatedFilesController;
