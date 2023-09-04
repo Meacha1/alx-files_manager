@@ -1,14 +1,15 @@
+const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const redisClient = require('../utils/redis');
+const sha1 = require('sha1');
 const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 class FilesController {
   static async postUpload(req, res) {
     // Retrieve the user ID based on the token
     const token = req.headers['x-token'];
-    
+
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -22,24 +23,26 @@ class FilesController {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // Extract file attributes from the request body
-      const { name, type, data, parentId, isPublic = false } = req.body;
+      // Extract required data from the request body
+      const { name, type, data, parentId, isPublic } = req.body;
 
-      // Check for missing attributes
+      // Check if name and type are provided
       if (!name) {
         return res.status(400).json({ error: 'Missing name' });
       }
       if (!type || !['folder', 'file', 'image'].includes(type)) {
         return res.status(400).json({ error: 'Missing type' });
       }
-      if (!data && type !== 'folder') {
+
+      // Check if data is missing for file and image types
+      if ((type === 'file' || type === 'image') && !data) {
         return res.status(400).json({ error: 'Missing data' });
       }
 
-      // Check parentId if provided
+      // Check if parentId is provided
       if (parentId !== undefined) {
-        const filesCollection = dbClient.db.collection('files');
-        const parentFile = await filesCollection.findOne({ _id: parentId });
+        // Find the parent file in the database
+        const parentFile = await dbClient.db.collection('files').findOne({ _id: parentId });
 
         if (!parentFile) {
           return res.status(400).json({ error: 'Parent not found' });
@@ -51,37 +54,38 @@ class FilesController {
       }
 
       // Create a new file document
-      const newFile = {
+      const fileDocument = {
         userId,
         name,
         type,
-        isPublic,
-        parentId: parentId || '0',
+        parentId: parentId || 0,
+        isPublic: isPublic || false,
       };
 
-      // If type is not folder, store the file on disk and update localPath
-      if (type !== 'folder') {
+      // If the type is 'file' or 'image', store the file content locally
+      if (type === 'file' || type === 'image') {
         const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
-        const filePath = path.join(folderPath, uuidv4());
+        const fileUuid = uuidv4();
+        const localPath = path.join(folderPath, fileUuid);
 
-        // Save the file content to disk
-        fs.writeFileSync(filePath, Buffer.from(data, 'base64'));
+        // Save the file content locally
+        const decodedData = Buffer.from(data, 'base64');
+        fs.writeFileSync(localPath, decodedData);
 
-        newFile.localPath = filePath;
+        fileDocument.localPath = localPath;
       }
 
-      // Insert the new file document into the database
-      const filesCollection = dbClient.db.collection('files');
-      const result = await filesCollection.insertOne(newFile);
+      // Insert the new file document into the collection
+      const result = await dbClient.db.collection('files').insertOne(fileDocument);
 
-      // Return the new file with status code 201
+      // Return the new file with a status code of 201
       const createdFile = {
         id: result.insertedId,
         userId,
         name,
         type,
-        isPublic,
-        parentId: parentId || '0',
+        parentId: parentId || 0,
+        isPublic: isPublic || false,
       };
 
       return res.status(201).json(createdFile);
