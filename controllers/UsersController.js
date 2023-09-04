@@ -52,33 +52,32 @@ class UsersController {
     }
   }
 
-  static async getMe (request, response) {
-    const { token } = request.headers;
+  static async getMe(req, res) {
+    // Get the token from the X-Token header
+    const token = req.headers['x-token'];
 
     if (!token) {
-      return response.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    try {
-      const userId = await dbClient.redisClient.get(`auth_${token}`);
+    // Retrieve the user ID from Redis based on the token
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
 
-      if (!userId) {
-        return response.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const usersCollection = dbClient.db.collection('users');
-      const user = await usersCollection.findOne({ _id: userId });
-
-      if (!user) {
-        return response.status(404).json({ error: 'User not found' });
-      }
-
-      return response.status(200).json(user);
-    } catch (error) {
-      console.error(error);
-      return response.status(500).json({ error: 'Server error' });
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
-  
+
+    // Retrieve the user from MongoDB using the user ID
+    const usersCollection = dbClient.db.collection('users');
+    const user = await usersCollection.findOne({ _id: userId });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Return the user object (email and id only)
+    return res.status(200).json({ email: user.email, id: user._id.toString() });
   }
 }
 
