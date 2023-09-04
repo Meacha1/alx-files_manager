@@ -111,16 +111,15 @@ class FilesController {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // Retrieve the file document based on the provided ID and user ID
+      // Retrieve the file document based on the provided ID
       const fileId = req.params.id;
-      const query = { _id: ObjectId(fileId), userId };
-
-      const file = await dbClient.db.collection('files').findOne(query);
+      const file = await dbClient.db.collection('files').findOne({ _id: fileId, userId });
 
       if (!file) {
         return res.status(404).json({ error: 'Not found' });
       }
 
+      // Return the file document
       return res.json(file);
     } catch (error) {
       console.error(error);
@@ -145,29 +144,23 @@ class FilesController {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // Extract query parameters
-      const parentId = req.query.parentId || '0';
-      const page = parseInt(req.query.page || 0);
+      // Extract query parameters (parentId and page) with default values
+      const parentId = req.query.parentId || 0;
+      const page = parseInt(req.query.page, 10) || 0;
+
+      // Define the number of items per page and calculate skip
       const perPage = 20;
+      const skip = page * perPage;
 
-      // Perform aggregation to paginate the files
-      const pipeline = [
-        {
-          $match: {
-            userId,
-            parentId: parentId.toString(),
-          },
-        },
-        {
-          $skip: page * perPage,
-        },
-        {
-          $limit: perPage,
-        },
-      ];
+      // Query the files collection with pagination
+      const files = await dbClient.db
+        .collection('files')
+        .find({ userId, parentId })
+        .skip(skip)
+        .limit(perPage)
+        .toArray();
 
-      const files = await dbClient.db.collection('files').aggregate(pipeline).toArray();
-
+      // Return the list of file documents
       return res.json(files);
     } catch (error) {
       console.error(error);
