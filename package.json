@@ -2,10 +2,11 @@
   "name": "alx-files_manager",
   "version": "1.0.0",
   "description": "0x04. Files manager",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src -d dist"
+    "build": "babel src -d dist",
+    "start-server": "node server.js"
   },
   "repository": {
     "type": "git",
