@@ -28,6 +28,7 @@
     "eslint-plugin-node": "^11.1.0"
   },
   "dependencies": {
+    "bull": "^4.11.3",
     "mongodb": "^6.0.0",
     "redis": "^4.6.8",
     "sha1": "^1.1.1",
