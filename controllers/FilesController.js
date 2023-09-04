@@ -5,6 +5,7 @@ const Queue = require('bull');
 const { findUserIdByToken } = require('../utils/helpers');
 const dbClient = require('../utils/db');
 const redisClient = require('../utils/redis');
+const thumbnail = require('image-thumbnail'); 
 
 class UpdatedFilesController {
   /**
