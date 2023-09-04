@@ -21,39 +21,36 @@ class UsersController {
       return res.status(400).json({ error: 'Missing password' });
     }
 
-    // Check if the email already exists in the DB
-    const userExists = await dbClient
-      .db()
-      .collection('users')
-      .findOne({ email });
-
-    if (userExists) {
-      console.log('User already exists');
-      return res.status(400).json({ error: 'Already exist' });
-    }
-
     // Hash the password using SHA1
     const hashedPassword = sha1(password);
     console.log(`Hashed password: ${hashedPassword}`);
 
-    // Create a new user object
-    const newUser = {
-      email,
-      password: hashedPassword,
-    };
-
-    console.log('Inserting the new user into the DB');
-
-    // Insert the new user into the DB
-    const result = await dbClient
-      .db()
-      .collection('users')
-      .insertOne(newUser);
-
-    console.log('User inserted into the DB');
-
-    // Return the new user's ID and email
-    return res.status(201).json({ id: result.insertedId, email });
+    try {
+        // Check if the user already exists
+        const usersCollection = dbClient.db.collection('users');
+        const user = await usersCollection.findOne({ email });
+        if (user) {
+            console.log(`User already exists with email ${email}`);
+            return res.status(400).json({ error: 'Already exist' });
+        }
+    
+        // Create the user
+        const result = await usersCollection.insertOne({
+            email,
+            password: hashedPassword,
+        });
+        console.log('User created');
+        console.log(result);
+    
+        // Return the new user
+        const newUser = result.ops[0];
+        delete newUser.password;
+        return res.status(201).json(newUser);
+        }
+        catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message });
+        }
   }
 }
 
