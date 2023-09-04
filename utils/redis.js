@@ -1,5 +1,3 @@
-// utils/redis.js
-
 const redis = require('redis');
 
 class RedisClient {
