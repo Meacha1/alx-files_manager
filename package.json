@@ -24,7 +24,8 @@
   "devDependencies": {
     "@babel/core": "^7.22.11",
     "@babel/preset-env": "^7.22.14",
-    "eslint": "^8.48.0"
+    "eslint": "^8.48.0",
+    "eslint-plugin-node": "^11.1.0"
   },
   "dependencies": {
     "mongodb": "^6.0.0",
