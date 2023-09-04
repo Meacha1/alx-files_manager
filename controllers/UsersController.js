@@ -1,5 +1,5 @@
-const sha1 = require('sha1');
-const dbClient = require('../utils/db');
+import sha1 from 'sha1';
+import dbClient from '../utils/db';
 
 class UsersController {
   static async postNew(req, res) {
