@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "bull": "^4.11.3",
+    "chai": "^4.3.8",
     "image-thumbnail": "^1.0.15",
     "mongodb": "^6.0.0",
     "redis": "^4.6.8",

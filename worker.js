@@ -1,7 +1,6 @@
-const Queue = require('bull');
-const thumbnail = require('image-thumbnail');
-const fs = require('fs');
+const { Worker, Queue } = require('bull');
 const dbClient = require('./utils/db');
+const userQueue = new Queue('userQueue');
 
 const fileQueue = new Queue('fileQueue');
 
@@ -33,4 +32,18 @@ fileQueue.process(async (job) => {
 
 fileQueue.on('completed', (job) => {
   console.log(`Thumbnail generation completed for job ${job.id}`);
+});
+
+userQueue.process(async (job) => {
+  const { userId } = job.data;
+
+  if (!userId) throw new Error('Missing userId');
+
+  // Retrieve the user from the database
+  const user = await dbClient.users.findOne({ _id: userId });
+
+  if (!user) throw new Error('User not found');
+
+  // Simulate sending a welcome email
+  console.log(`Welcome ${user.email}!`);
 });

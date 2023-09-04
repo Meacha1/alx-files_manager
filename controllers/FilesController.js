@@ -242,7 +242,8 @@ class UpdatedFilesController {
       return response.status(400).json({ error: "A folder doesn't have content" });
     }
 
-    const localPath = fileDocument.localPath;
+    const size = request.query.size || ''; // Get the size query parameter
+    const localFilePath = `${localPath}_${size}`; // Construct the path for the thumbnail
 
     if (!fs.existsSync(localPath)) {
       return response.status(404).json({ error: 'Not found' });
