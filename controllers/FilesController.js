@@ -94,6 +94,86 @@ class FilesController {
       return res.status(500).json({ error: 'Server error' });
     }
   }
+  static async getShow(req, res) {
+    // Retrieve the user based on the token
+    const token = req.headers['x-token'];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Retrieve the user ID associated with the token from Redis
+      const redisKey = `auth_${token}`;
+      const userId = await redisClient.get(redisKey);
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Retrieve the file document based on the provided ID and user ID
+      const fileId = req.params.id;
+      const query = { _id: ObjectId(fileId), userId };
+
+      const file = await dbClient.db.collection('files').findOne(query);
+
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      return res.json(file);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
+
+  static async getIndex(req, res) {
+    // Retrieve the user based on the token
+    const token = req.headers['x-token'];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      // Retrieve the user ID associated with the token from Redis
+      const redisKey = `auth_${token}`;
+      const userId = await redisClient.get(redisKey);
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Extract query parameters
+      const parentId = req.query.parentId || '0';
+      const page = parseInt(req.query.page || 0);
+      const perPage = 20;
+
+      // Perform aggregation to paginate the files
+      const pipeline = [
+        {
+          $match: {
+            userId,
+            parentId: parentId.toString(),
+          },
+        },
+        {
+          $skip: page * perPage,
+        },
+        {
+          $limit: perPage,
+        },
+      ];
+
+      const files = await dbClient.db.collection('files').aggregate(pipeline).toArray();
+
+      return res.json(files);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
 }
 
 module.exports = FilesController;
