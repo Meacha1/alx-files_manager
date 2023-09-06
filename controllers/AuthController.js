@@ -14,7 +14,7 @@ class AuthController {
     const credentials = Buffer.from(authHeader.split(' ')[1], 'base64').toString();
     const [email, password] = credentials.split(':');
 
-    // Find the user based on email and hashed password (using SHA1)
+    // Find the user based on email and hashed password
     const hashedPassword = sha1(password);
     const usersCollection = dbClient.db.collection('users');
     const user = await usersCollection.findOne({ email, password: hashedPassword });
@@ -26,9 +26,9 @@ class AuthController {
     // Generate a random token
     const token = uuidv4();
 
-    // Store the user ID in Redis with the generated token for 24 hours
+    // Store the user ID in Redis with the generated token
     const key = `auth_${token}`;
-    await redisClient.setex(key, 86400, user._id.toString()); // Store for 24 hours
+    await redisClient.set(key, user._id.toString(), 86400); // Store for 24 hours
 
     return res.status(200).json({ token });
   }
