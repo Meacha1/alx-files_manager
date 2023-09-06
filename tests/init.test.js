@@ -1,6 +1,6 @@
-const supertest = require('supertest');
-const chai = require('chai');
-const api = require('../server');
+import supertest from 'supertest';
+import chai from 'chai';
+import api from '../server';
 
 global.app = api;
 global.request = supertest(api);

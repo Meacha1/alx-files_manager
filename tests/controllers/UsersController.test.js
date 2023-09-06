@@ -1,12 +1,10 @@
-const { describe, it, before } = require('just');
-const { expect } = require('chai');
-const request = require('supertest');
-const dbClient = require('../../utils/db');
+/* eslint-disable import/no-named-as-default */
+import dbClient from '../../utils/db';
 
 describe('+ UserController', () => {
   const mockUser = {
-    email: 'meacha@gmail.com',
-    password: '123456',
+    email: 'beloxxi@blues.com',
+    password: 'melody1982',
   };
 
   before(function (done) {
@@ -88,4 +86,5 @@ describe('+ UserController', () => {
         });
     });
   });
+
 });

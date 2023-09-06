@@ -1,6 +1,6 @@
-const { describe, it, before } = require('just');
-const { expect } = require('chai');
-const redisClient = require('../../utils/redis');
+/* eslint-disable import/no-named-as-default */
+import { expect } from 'chai';
+import redisClient from '../../utils/redis';
 
 describe('+ RedisClient utility', () => {
   before(function (done) {
